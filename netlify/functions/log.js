@@ -1,5 +1,9 @@
 // netlify/functions/log.js
-const fs = require("fs");
+const { google } = require("googleapis");
+const { JWT } = require("google-auth-library");
+
+const SPREADSHEET_ID = "13EJ_qu0Zvn--WnpRZjG-hDbKqpmlB10hVjrIfg_vid8";
+const SERVICE_ACCOUNT_KEY = require("./google-service-account-key.json");
 
 exports.handler = async function (event) {
   if (event.httpMethod !== "POST") {
@@ -7,13 +11,35 @@ exports.handler = async function (event) {
   }
 
   const logEntry = JSON.parse(event.body);
-  const logString = `<span class="math-inline">\{logEntry\.timestamp\},</span>{logEntry.videoId},<span class="math-inline">\{logEntry\.videoTitle\},</span>{logEntry.eventType},${logEntry.duration}\n`;
+  const values = [
+    [
+      logEntry.timestamp,
+      logEntry.videoId,
+      logEntry.videoTitle,
+      logEntry.eventType,
+      logEntry.duration,
+    ],
+  ];
 
   try {
-    fs.appendFileSync("video_log.csv", logString);
-    return { statusCode: 200, body: "Log saved" };
-  } catch (err) {
-    console.error("Error writing to log file:", err);
-    return { statusCode: 500, body: "Error writing to log file" };
+    const client = new JWT({
+      email: SERVICE_ACCOUNT_KEY.client_email,
+      key: SERVICE_ACCOUNT_KEY.private_key,
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
+
+    const sheets = google.sheets({ version: "v4", auth: client });
+
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: SPREADSHEET_ID,
+      range: "Sheet1", // Or your sheet name
+      valueInputOption: "USER_ENTERED",
+      resource: { values },
+    });
+
+    return { statusCode: 200, body: "Log saved to Google Sheets" };
+  } catch (error) {
+    console.error("Error saving to Google Sheets:", error);
+    return { statusCode: 500, body: "Error saving to Google Sheets" };
   }
 };
