@@ -3,7 +3,6 @@ const { google } = require("googleapis");
 const { JWT } = require("google-auth-library");
 
 const SPREADSHEET_ID = "13EJ_qu0Zvn--WnpRZjG-hDbKqpmlB10hVjrIfg_vid8";
-const SERVICE_ACCOUNT_KEY = require("./google-service-account-key.json");
 
 exports.handler = async function (event) {
   if (event.httpMethod !== "POST") {
@@ -22,9 +21,15 @@ exports.handler = async function (event) {
   ];
 
   try {
+    const decodedKey = JSON.parse(
+      Buffer.from(process.env.GOOGLE_SERVICE_ACCOUNT_KEY, "base64").toString(
+        "utf-8"
+      )
+    );
+
     const client = new JWT({
-      email: SERVICE_ACCOUNT_KEY.client_email,
-      key: SERVICE_ACCOUNT_KEY.private_key,
+      email: decodedKey.client_email,
+      key: decodedKey.private_key,
       scopes: ["https://www.googleapis.com/auth/spreadsheets"],
     });
 
