@@ -27,6 +27,7 @@ function App() {
   const nextVideo = () => {
     if (currentVideoIndex < videos.length - 1) {
       setCurrentVideoIndex(currentVideoIndex + 1);
+      startTimeRef.current = new Date(); // Reset start time for the next video
       logVideoEvent("Video Skipped");
     }
   };
@@ -34,6 +35,7 @@ function App() {
   const prevVideo = () => {
     if (currentVideoIndex > 0) {
       setCurrentVideoIndex(currentVideoIndex - 1);
+      startTimeRef.current = new Date(); // Reset start time for the previous video
       logVideoEvent("Previous Video Viewed");
     }
   };
@@ -51,7 +53,7 @@ function App() {
       videoId: videos[currentVideoIndex].id,
       videoTitle: videos[currentVideoIndex].title,
       eventType,
-      relativeTimestamp: relativeTimestamp ? relativeTimestamp : 0, // Relative timestamp in seconds
+      timestamp: relativeTimestamp ? relativeTimestamp : 0, // Relative timestamp in seconds
     };
 
     sendLogToServer(logEntry); // Send to server
