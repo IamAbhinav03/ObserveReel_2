@@ -1,8 +1,16 @@
 // src/components/VideoPlayer.jsx
 import React, { useState, useRef, useEffect } from "react";
 
-function VideoPlayer({ video, onEnd, videoRef, logVideoEvent }) {
+function VideoPlayer({
+  video,
+  onEnd,
+  videoRef,
+  logVideoEvent,
+  onSwipeUp,
+  onSwipeDown,
+}) {
   const [isPlaying, setIsPlaying] = useState(true);
+  const touchStartY = useRef(null);
 
   const togglePlay = () => {
     if (videoRef.current.paused) {
@@ -36,6 +44,27 @@ function VideoPlayer({ video, onEnd, videoRef, logVideoEvent }) {
     }
   };
 
+  const handleTouchStart = (e) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e) => {
+    if (touchStartY.current === null) return;
+
+    const touchEndY = e.changedTouches[0].clientY;
+    const deltaY = touchStartY.current - touchEndY;
+
+    if (deltaY > 50) {
+      // Swipe up
+      onSwipeUp();
+    } else if (deltaY < -50) {
+      // Swipe down
+      onSwipeDown();
+    }
+
+    touchStartY.current = null;
+  };
+
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.load();
@@ -44,7 +73,12 @@ function VideoPlayer({ video, onEnd, videoRef, logVideoEvent }) {
   }, [video]);
 
   return (
-    <div className="relative h-full w-full flex items-center justify-center">
+    <div
+      className="relative h-full w-full flex items-center justify-center"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onClick={togglePlay} // Tap to pause/play
+    >
       <video
         ref={videoRef}
         src={video.url}
@@ -70,6 +104,3 @@ function VideoPlayer({ video, onEnd, videoRef, logVideoEvent }) {
 }
 
 export default VideoPlayer;
-
-// src/components/VideoLog.jsx (no changes needed)
-// src/data/videos.js (no changes needed)

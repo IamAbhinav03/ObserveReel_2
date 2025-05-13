@@ -122,6 +122,8 @@ function App() {
           onEnd={handleVideoEnd}
           videoRef={videoRef}
           logVideoEvent={logVideoEvent}
+          onSwipeUp={nextVideo}
+          onSwipeDown={prevVideo}
         />
       </div>
     </div>
